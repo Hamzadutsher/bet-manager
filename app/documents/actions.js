@@ -18,9 +18,9 @@ async function sauvegarderFichier(file) {
     await writeFile(path.join(dir, nom), buffer);
     return `/uploads/${nom}`;
   } catch (e) {
-    // En hébergement serverless (ex. Vercel), le système de fichiers est en lecture seule.
+    // En hébergement serverless (ex. Amplify/Vercel), le système de fichiers est en lecture seule.
     // On n'échoue pas la création du document : privilégiez le champ « lien externe »,
-    // ou branchez un stockage type Vercel Blob / S3 (voir le guide de déploiement).
+    // ou branchez un stockage type S3 / Vercel Blob (voir le guide de déploiement).
     console.warn("Téléversement de fichier impossible (FS en lecture seule ?) :", e.message);
     return null;
   }

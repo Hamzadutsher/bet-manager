@@ -17,9 +17,9 @@ Développée avec **Next.js 14** (App Router), **Prisma** et **SQLite**.
 
 ## Prérequis
 
-- [Node.js](https://nodejs.org) 18 ou supérieur
+- [Node.js](https://nodejs.org) 18 ou supérieur (Node 20+ recommandé)
 - npm (fourni avec Node.js)
-- Une base de données **PostgreSQL** (locale, ou gratuite dans le cloud : Prisma Postgres / Neon — voir `DEPLOIEMENT.md`)
+- Une base de données **PostgreSQL** (locale, ou gratuite dans le cloud : Neon / Prisma Postgres)
 
 ## Installation & démarrage
 
@@ -28,12 +28,12 @@ Dans le dossier du projet :
 ```bash
 # 1. Créer le fichier d'environnement à partir du modèle
 cp .env.example .env
-#    puis ouvrez .env et renseignez votre URL PostgreSQL dans DATABASE_URL
+#    puis renseignez votre URL PostgreSQL dans DATABASE_URL
 
 # 2. Installer les dépendances
 npm install
 
-# 3. Préparer la base de données (client Prisma, création des tables, données de démo)
+# 3. Préparer la base (client Prisma, création des tables, données de démo)
 npm run setup
 
 # 4. Lancer l'application en développement
@@ -42,8 +42,8 @@ npm run dev
 
 Ouvrez ensuite http://localhost:3000 dans votre navigateur.
 
-> 🚀 Pour mettre l'application **en ligne** (accessible à votre équipe), suivez le guide adapté à votre hébergeur :
-> **`DEPLOIEMENT-AMPLIFY.md`** (AWS Amplify) ou **`DEPLOIEMENT.md`** (Vercel).
+> 🚀 Pour mettre l'application **en ligne** : **`DEPLOIEMENT-AMPLIFY.md`** (AWS Amplify)
+> ou **`DEPLOIEMENT.md`** (Vercel).
 
 ## Scripts utiles
 
@@ -70,9 +70,6 @@ Pour explorer les données visuellement :
 ```bash
 npx prisma studio
 ```
-
-> 💡 Astuce : vous pouvez utiliser la **même base cloud gratuite** en local et en production
-> (une seule `DATABASE_URL`), ou en créer deux distinctes. Voir `DEPLOIEMENT.md`.
 
 ## Personnalisation
 
@@ -115,6 +112,6 @@ vue mise en page. Utilisez la fonction d'impression du navigateur
 
 - Le projet n'inclut pas encore d'authentification (connexion utilisateur).
   C'est la première amélioration recommandée avant une mise en production.
-- La base est déjà en **PostgreSQL**, prête pour un déploiement multi-utilisateurs (voir `DEPLOIEMENT.md`).
+- La base est en **PostgreSQL**, prête pour un déploiement multi-utilisateurs (voir les guides de déploiement).
 - Le téléversement de fichiers écrit dans `public/uploads` en local ; en hébergement serverless
-  (Vercel), utilisez le champ « lien externe » ou branchez un stockage type Vercel Blob / S3.
+  (Amplify/Vercel), utilisez le champ « lien externe » ou branchez un stockage S3 / Vercel Blob.
