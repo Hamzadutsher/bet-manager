@@ -1,0 +1,231 @@
+// Schéma de la base de données — Bureau d'Études Techniques
+// Base : SQLite (fichier local dev.db)
+
+generator client {
+  provider      = "prisma-client-js"
+  // "native" : votre machine locale.
+  // "rhel-openssl-*" : runtime Lambda d'AWS Amplify (les deux versions couvrent
+  //   les environnements Amazon Linux 2 et 2023). Requis pour l'hébergement Amplify.
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------------
+// CLIENTS
+// ------------------------------------------------------------------
+model Client {
+  id          Int      @id @default(autoincrement())
+  type        String   @default("entreprise") // "entreprise" | "particulier" | "administration"
+  nom         String
+  contact     String? // personne à contacter
+  email       String?
+  telephone   String?
+  adresse     String?
+  ville       String?
+  ice         String? // Identifiant Commun de l'Entreprise (Maroc)
+  rc          String? // Registre de Commerce
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  devis      Devis[]
+  factures   Facture[]
+  chantiers  Chantier[]
+  documents  Document[]
+  projets    Projet[]
+}
+
+// ------------------------------------------------------------------
+// PROJETS — entité chapeau qui regroupe tous les modules
+// ------------------------------------------------------------------
+model Projet {
+  id          Int       @id @default(autoincrement())
+  reference   String    @unique // PRJ-2026-0001
+  nom         String
+  clientId    Int
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  description String?
+  statut      String    @default("en_cours") // prospect | en_cours | suspendu | termine | annule
+  budget      Float?
+  responsable String?
+  dateDebut   DateTime?
+  dateFin     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  devis     Devis[]
+  factures  Facture[]
+  chantiers Chantier[]
+  documents Document[]
+
+  @@index([clientId])
+}
+
+// ------------------------------------------------------------------
+// DEVIS
+// ------------------------------------------------------------------
+model Devis {
+  id          Int      @id @default(autoincrement())
+  numero      String   @unique
+  clientId    Int
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projetId    Int?
+  projet      Projet?  @relation(fields: [projetId], references: [id], onDelete: SetNull)
+  objet       String?
+  date        DateTime @default(now())
+  validite    Int      @default(30) // durée de validité en jours
+  statut      String   @default("brouillon") // brouillon | envoye | accepte | refuse | expire
+  tauxTva     Float    @default(20) // %
+  remise      Float    @default(0) // % de remise globale
+  notes       String?
+  conditions  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lignes   LigneDevis[]
+  facture  Facture?
+
+  @@index([clientId])
+  @@index([projetId])
+}
+
+model LigneDevis {
+  id           Int    @id @default(autoincrement())
+  devisId      Int
+  devis        Devis  @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  designation  String
+  quantite     Float  @default(1)
+  unite        String @default("u") // u, m², ml, forfait, jour...
+  prixUnitaire Float  @default(0)
+  ordre        Int    @default(0)
+
+  @@index([devisId])
+}
+
+// ------------------------------------------------------------------
+// FACTURES
+// ------------------------------------------------------------------
+model Facture {
+  id          Int       @id @default(autoincrement())
+  numero      String    @unique
+  clientId    Int
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  devisId     Int?      @unique
+  devis       Devis?    @relation(fields: [devisId], references: [id], onDelete: SetNull)
+  projetId    Int?
+  projet      Projet?   @relation(fields: [projetId], references: [id], onDelete: SetNull)
+  objet       String?
+  date        DateTime  @default(now())
+  echeance    DateTime?
+  statut      String    @default("impayee") // impayee | partielle | payee | annulee
+  tauxTva     Float     @default(20)
+  remise      Float     @default(0)
+  montantPaye Float     @default(0)
+  notes       String?
+  conditions  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  lignes    LigneFacture[]
+  paiements Paiement[]
+
+  @@index([clientId])
+  @@index([projetId])
+}
+
+model LigneFacture {
+  id           Int     @id @default(autoincrement())
+  factureId    Int
+  facture      Facture @relation(fields: [factureId], references: [id], onDelete: Cascade)
+  designation  String
+  quantite     Float   @default(1)
+  unite        String  @default("u")
+  prixUnitaire Float   @default(0)
+  ordre        Int     @default(0)
+
+  @@index([factureId])
+}
+
+model Paiement {
+  id        Int      @id @default(autoincrement())
+  factureId Int
+  facture   Facture  @relation(fields: [factureId], references: [id], onDelete: Cascade)
+  montant   Float
+  date      DateTime @default(now())
+  mode      String   @default("virement") // virement | cheque | espece | carte
+  reference String?
+  createdAt DateTime @default(now())
+
+  @@index([factureId])
+}
+
+// ------------------------------------------------------------------
+// CHANTIERS / SUIVI DES TRAVAUX
+// ------------------------------------------------------------------
+model Chantier {
+  id          Int       @id @default(autoincrement())
+  reference   String    @unique
+  nom         String
+  clientId    Int
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projetId    Int?
+  projet      Projet?   @relation(fields: [projetId], references: [id], onDelete: SetNull)
+  adresse     String?
+  ville       String?
+  description String?
+  statut      String    @default("planifie") // planifie | en_cours | suspendu | termine | annule
+  avancement  Int       @default(0) // pourcentage 0-100
+  budget      Float?
+  dateDebut   DateTime?
+  dateFin     DateTime?
+  responsable String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  taches    TacheChantier[]
+  documents Document[]
+
+  @@index([clientId])
+  @@index([projetId])
+}
+
+model TacheChantier {
+  id         Int       @id @default(autoincrement())
+  chantierId Int
+  chantier   Chantier  @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  titre      String
+  description String?
+  statut     String    @default("a_faire") // a_faire | en_cours | termine | bloque
+  dateEcheance DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([chantierId])
+}
+
+// ------------------------------------------------------------------
+// DOCUMENTATION / CONVENTIONS
+// ------------------------------------------------------------------
+model Document {
+  id          Int       @id @default(autoincrement())
+  titre       String
+  type        String    @default("document") // convention | documentation | contrat | plan | rapport | autre
+  description String?
+  fichier     String? // chemin du fichier téléversé (/uploads/...)
+  lien        String? // ou lien externe
+  clientId    Int?
+  client      Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  chantierId  Int?
+  chantier    Chantier? @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  projetId    Int?
+  projet      Projet?   @relation(fields: [projetId], references: [id], onDelete: SetNull)
+  dateDoc     DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+
+  @@index([clientId])
+  @@index([chantierId])
+  @@index([projetId])
+}

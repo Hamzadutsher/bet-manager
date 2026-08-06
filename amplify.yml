@@ -1,0 +1,25 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Installe les dépendances
+        - npm install
+        # Rend DATABASE_URL disponible au runtime Lambda (SSR) via un fichier .env
+        # embarqué dans l'artefact de build. La variable est définie dans la console Amplify.
+        - echo "DATABASE_URL=$DATABASE_URL" >> .env
+    build:
+      commands:
+        # Génère le client Prisma (avec les binaires Lambda), crée/synchronise les tables, build Next.js
+        - npx prisma generate
+        - npx prisma db push
+        - npm run build
+  artifacts:
+    # Application Next.js SSR : Amplify prend le dossier .next
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
