@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "vercel-build": "prisma generate && prisma db push && next build",
+    "vercel-build": "prisma generate && prisma db push && node prisma/seed-if-empty.js && next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
+    "db:seed-if-empty": "node prisma/seed-if-empty.js",
     "db:reset": "prisma db push --force-reset && node prisma/seed.js",
     "setup": "prisma generate && prisma db push && node prisma/seed.js"
   },

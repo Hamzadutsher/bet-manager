@@ -16,9 +16,13 @@ frontend:
         - echo "DATABASE_URL=$DATABASE_URL" >> .env
     build:
       commands:
-        # Génère le client Prisma (avec les binaires Lambda), crée/synchronise les tables, build Next.js
+        # Génère le client Prisma (avec les binaires Lambda)
         - npx prisma generate
+        # Crée / synchronise les tables dans PostgreSQL
         - npx prisma db push
+        # Remplit la base la 1re fois (non destructif ensuite)
+        - node prisma/seed-if-empty.js
+        # Build Next.js
         - npm run build
   artifacts:
     # Application Next.js SSR : Amplify prend le dossier .next

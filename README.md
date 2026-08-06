@@ -15,6 +15,22 @@ Développée avec **Next.js 14** (App Router), **Prisma** et **SQLite**.
 
 > Contexte marocain : montants en **Dirham (MAD)**, **TVA 20 %**, champs **ICE / RC**.
 
+## 🚀 Déploiement le plus simple (Vercel, base incluse)
+
+C'est la voie qui demande le **moins d'étapes** : la base de données est proposée
+automatiquement et la variable `DATABASE_URL` est renseignée pour vous.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHamzadutsher%2Fbet-manager&env=DATABASE_URL&envDescription=URL%20PostgreSQL%20(cr%C3%A9%C3%A9e%20automatiquement%20via%20Storage%2C%20ou%20Neon))
+
+1. Cliquez le bouton ci-dessus (connectez-vous à Vercel avec GitHub).
+2. Quand Vercel le propose, ouvrez **Storage → Create → Postgres (Neon)** : la variable
+   `DATABASE_URL` est ajoutée automatiquement. (Sinon, collez une URL Neon dans le champ demandé.)
+3. Cliquez **Deploy**. Le build crée les tables **et** insère les données de démonstration.
+
+À la fin, vous obtenez une URL publique, avec une application **déjà peuplée et fonctionnelle**.
+
+> Pour **AWS Amplify**, suivez `DEPLOIEMENT-AMPLIFY.md` (la base doit être créée à part, ex. Neon).
+
 ## Prérequis
 
 - [Node.js](https://nodejs.org) 18 ou supérieur (Node 20+ recommandé)
