@@ -7,12 +7,11 @@ frontend:
         - nvm install 20
         - nvm use 20
         - node -v
-        # Vérifie que la variable de base de données est bien définie (sinon build échoue avec un message clair)
-        - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR: la variable DATABASE_URL n''est pas définie dans Amplify (App settings > Environment variables)."; exit 1; fi'
+        # Vérifie que la variable de base de données est bien définie (message clair sinon)
+        - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR: la variable DATABASE_URL n''est pas definie dans Amplify (App settings > Environment variables)."; exit 1; fi'
         # Installe les dépendances
         - npm install
-        # Rend DATABASE_URL disponible au runtime Lambda (SSR) via un fichier .env
-        # embarqué dans l'artefact de build. La variable est définie dans la console Amplify.
+        # Rend DATABASE_URL disponible au runtime (SSR) et au seed via un fichier .env
         - echo "DATABASE_URL=$DATABASE_URL" >> .env
     build:
       commands:

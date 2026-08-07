@@ -3,6 +3,21 @@
 // - Si la base est vide → insère les données de démonstration.
 // Ainsi le premier déploiement fournit une base peuplée, et les déploiements
 // suivants ne touchent pas aux données réelles.
+// Charge le fichier .env (le CLI Prisma le fait, mais pas Node directement)
+(function loadEnv() {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const p = path.join(__dirname, "..", ".env");
+    if (fs.existsSync(p)) {
+      for (const line of fs.readFileSync(p, "utf8").split("\n")) {
+        const m = line.match(/^\s*([\w.-]+)\s*=\s*(.*)\s*$/);
+        if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+      }
+    }
+  } catch (_) {}
+})();
+
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
